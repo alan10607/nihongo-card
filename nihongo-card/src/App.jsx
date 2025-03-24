@@ -4,12 +4,12 @@ import { Navigate, useRoutes } from "react-router-dom"
 
 const routeConfig = [
   {
-    path: "/",
+    path: "/nihongo-card/",
     element: <Root />
   },
   {
     path: "*",
-    element: <Navigate to="/" replace />
+    element: <Navigate to="/nihongo-card/" replace />
   }
 ]
 
