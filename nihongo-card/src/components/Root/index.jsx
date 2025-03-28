@@ -11,7 +11,7 @@ export default function FlashCard() {
   const [showRt, setShowRt] = useState(false);
   const DIFFICULTY = { LV1: 0, LV2: 1, DEFAULT: -1 };
   const [markList, setMarkList] = useLocalStorage('markList', [[], []]);
-  const [markFilterLevel, setMarkFilterLevel] = useState(DIFFICULTY.DEFAULT);
+  const [markLevel, setMarkLevel] = useState(DIFFICULTY.DEFAULT);
 
   // Load dict
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function FlashCard() {
         setIndex(0);
       })
       .catch((error) => console.error('Error loading dict:', error));
-  }, [markFilterLevel]);
+  }, [markLevel]);
 
   const parseToDict = (data) => {
     const lines = data.split('\n');
@@ -33,7 +33,7 @@ export default function FlashCard() {
     let tag = '';
     for (const line of lines) {
       if (line === '') continue;
-      if (markFilterLevel >= 0 && !markList[markFilterLevel].includes(line)) continue;
+      if (!isInMarkLevel(line)) continue;
       if (line.includes('**')) { // to tag in next card
         tag = line.replaceAll('*', '');
         continue;
@@ -78,6 +78,17 @@ export default function FlashCard() {
     }
 
     return tempDict;
+  }
+
+  const isInMarkLevel = (key) => {
+    if (markLevel === DIFFICULTY.LV1) {
+      return markList[DIFFICULTY.LV1].includes(key);
+    } else if (markLevel === DIFFICULTY.LV2) {
+      return markList[DIFFICULTY.LV1].includes(key) 
+          || markList[DIFFICULTY.LV2].includes(key);
+    } else {
+      return true;
+    }
   }
 
   const handleFlip = () => setFlipped((prev) => !prev);
@@ -142,7 +153,7 @@ export default function FlashCard() {
   };
 
   const handleMarkFilterChange = (event) => {
-    setMarkFilterLevel(event.target.value);
+    setMarkLevel(event.target.value);
   };
 
   const getStickerColorCss = () => {
@@ -170,7 +181,7 @@ export default function FlashCard() {
           {getTagOptions()}
         </select>
         <div className='expand'></div>
-        <select value={markFilterLevel} onChange={handleMarkFilterChange}>
+        <select value={markLevel} onChange={handleMarkFilterChange}>
           <option value={DIFFICULTY.DEFAULT}>-</option>
           <option value={DIFFICULTY.LV1}>☆</option>
           <option value={DIFFICULTY.LV2}>☆☆</option>
