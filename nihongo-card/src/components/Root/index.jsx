@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import useLocalStorage from "../../utils/useLocalStorage";
+import useLocalStorage from '../../utils/useLocalStorage';
 import * as yaml from 'js-yaml';
 import './style.css';
 
@@ -9,8 +9,9 @@ export default function FlashCard() {
   const [tagIndex, setTagIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [startX, setStartX] = useState(0); // Use this to follow up touching
-  const [markList, setMarkList] = useLocalStorage("markList", [[],[]]);
-  const filterValue = useRef(-1);
+  const [markList, setMarkList] = useLocalStorage('markList', [[], []]);
+  const [filter, setFilter] = useState(-1);
+  const [showRt, setShowRt] = useState(false);
 
   // Load dict
   useEffect(() => {
@@ -20,9 +21,9 @@ export default function FlashCard() {
         const parsedData = parseToDict(data);
         setDict(parsedData);
       })
-      .catch((error) => console.error("Error loading dict:", error));
+      .catch((error) => console.error('Error loading dict:', error));
   }, []);
-  
+
   const parseToDict = (data) => {
     const lines = data.split('\n');
     const tempDict = [];
@@ -35,13 +36,13 @@ export default function FlashCard() {
         continue;
       }
 
-      const wordAndExp = line.split(":");
+      const wordAndExp = line.split(':');
       const word = wordAndExp[0];
       const exp = wordAndExp[1] || '';
       let html = '<ruby>';
       let rtFlag = false;
       let multiRt = false;
-    
+
       for (let i = 0; i < word.length; i++) {
         const ch = word[i];
         if (ch === ' ') {
@@ -66,7 +67,7 @@ export default function FlashCard() {
           html += ch;
         }
       }
-    
+
       html += '</ruby>';
       tempDict.push({ html, exp, tag });
 
@@ -77,37 +78,17 @@ export default function FlashCard() {
   }
 
   const handleFlip = () => setFlipped((prev) => !prev);
+  const handleShowRt = () => setShowRt((prev) => !prev);
 
   const nextCard = () => {
-    setIndex((prev) => {
-      let newIndex = prev;
-      for (let i = 0; i < dict.length; i++) {
-        newIndex = (newIndex + 1) % dict.length;
-        if (filterValue.current < 0 || markList[filterValue.current].includes(dict[newIndex])) {
-          return newIndex;
-        }
-      }
-
-      return prev;
-    });
+    setIndex((prev) => (prev + 1) % dict.length);
     setFlipped(false);
   }
 
   const prevCard = () => {
-    setIndex((prev) => {
-      let newIndex = prev;
-      for (let i = 0; i < dict.length; i++) {
-        newIndex = (newIndex - 1 + dict.length) % dict.length;
-        if (filterValue.current < 0 || markList[filterValue.current].includes(dict[newIndex])) {
-          return newIndex;
-        }
-      }
-
-      return prev;
-    });
+    setIndex((prev) => (prev - 1 + dict.length) % dict.length);
     setFlipped(false);
   };
-  
 
   const handleTouchStart = (e) => {
     const touchStart = e.touches[0].clientX;
@@ -128,17 +109,17 @@ export default function FlashCard() {
   // Keyboard listener
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "ArrowRight") {
+      if (e.key === 'ArrowRight') {
         nextCard();
-      } else if (e.key === "ArrowLeft") {
+      } else if (e.key === 'ArrowLeft') {
         prevCard();
-      } else if (e.key === "Enter" || e.key === ' ') {
+      } else if (e.key === 'Enter' || e.key === ' ') {
         handleFlip();
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [dict]);
 
   const handleTagChange = (event) => {
@@ -147,23 +128,27 @@ export default function FlashCard() {
   };
 
   const handleFilterChange = (event) => {
-    filterValue.current = Number(event.target.value);
   };
 
   const handleMarkDifficulty = (difficulty) => {
     const updatedList = markList[difficulty].includes(index)
       ? markList[difficulty].filter(item => item !== index)
-      : [...markList[difficulty], index]; 
+      : [...markList[difficulty], index];
 
     const newMarkList = [...markList];
     newMarkList[difficulty] = updatedList;
     setMarkList(newMarkList);
   };
 
+  const getStickerColorCss = () => {
+    if (markList[1].includes(index)) return "red";
+    if (markList[0].includes(index)) return "yellow";
+    return ""
+  }
+
   return (
-    <div>
-      <div className="card-manager">
-        Go to:
+    <div className='root-container'>
+      <div className='card-manager'>
         <select value={tagIndex} onChange={handleTagChange}>
           {dict.map((data, index) => ({ text: data.tag, value: index }))
             .filter(item => !!item.text)
@@ -171,37 +156,39 @@ export default function FlashCard() {
               <option key={item.value} value={item.value}>
                 {item.text}
               </option>
-          ))}
+            ))}
         </select>
-        Select note:
-        <select value={filterValue} onChange={handleFilterChange}>
-          <option value="-1">-</option>
-          <option value="0">☆</option>
-          <option value="1">☆☆</option>
+        <div className='expand'></div>
+        <select value={filter} onChange={handleFilterChange}>
+          <option value='-1'>-</option>
+          <option value='0'>☆</option>
+          <option value='1'>☆☆</option>
         </select>
-        <button onClick={() => handleMarkDifficulty(0)}>☆</button>
-        <button onClick={() => handleMarkDifficulty(1)}>☆☆</button>
+        <button onClick={handleShowRt}>あ</button>
+        <button className='yellow' onClick={() => handleMarkDifficulty(0)}>☆</button>
+        <button className='red' onClick={() => handleMarkDifficulty(1)}>☆☆</button>
       </div>
 
-      <div className="card-container">
-          {dict.length > 0 && (
-            <div
-              className={`flashcard ${flipped ? 'flipped' : ''}`}
-              onClick={handleFlip}
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-            >
-              <div className="front">
-                <div dangerouslySetInnerHTML={{ __html: dict[index].html}} />
-              </div>
-              <div className="back">
-                <div className="no-rt" dangerouslySetInnerHTML={{ __html: dict[index].html}} />
-                <div className="exp">{dict[index].exp}</div>
-              </div>
+      <div className='card-container'>
+        {dict.length > 0 && (
+          <div
+            className={`flashcard ${flipped ? 'flipped' : ''}`}
+            onClick={handleFlip}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div className={`sticker ${getStickerColorCss()}`}></div>
+            <div className='front'>
+              <div className={`${showRt ? '' : 'no-rt'}`} dangerouslySetInnerHTML={{ __html: dict[index].html }} />
             </div>
-          )}
-        </div>
+            <div className='back'>
+              <div dangerouslySetInnerHTML={{ __html: dict[index].html }} />
+              <div className='exp'>{dict[index].exp}</div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
- 
+
   );
 }

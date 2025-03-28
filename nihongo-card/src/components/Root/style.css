@@ -1,25 +1,35 @@
-body {
-  background-color: #dcdcdc;
-  font-family: Arial, sans-serif;
+.root-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  height: 100vh;
+  padding: 15px 5px;
 }
 
-ruby rt{
-  font-family: 'Brush Script MT', 'KaiTi', 'SimKai', 'Yu Mincho', serif; 
+.root-container> :first-child {
+  flex-grow: 0;
+}
+
+.root-container> :nth-child(2) {
+  flex-grow: 1;
+}
+
+ruby rt {
+  font-family: 'Brush Script MT', 'KaiTi', 'SimKai', 'Yu Mincho', serif;
 }
 
 .card-container {
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
+  margin-top: 50px;
 }
 
 .flashcard {
   width: 80vw;
-  height: 60vh;
+  height: 60vw;
   position: relative;
   perspective: 1000px; /* Set the visual perspective */
-  transform-style: preserve-3d; /* Ensure child elements are in 3D space */  
+  transform-style: preserve-3d; /* Ensure child elements are in 3D space */
   transition: transform 0.2s;
   background-color: white;
   border-radius: 10px;
@@ -30,7 +40,8 @@ ruby rt{
   transform: rotateX(180deg); /* When card flipped, rotate 180 deg */
 }
 
-.front, .back {
+.front,
+.back {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -57,40 +68,85 @@ ruby rt{
   font-size: 4vw;
 }
 
+.flashcard {
+  width: 80vw;
+  height: 60vw;
+  position: relative;
+  perspective: 1000px;/* Set the visual perspective */
+  transform-style: preserve-3d; /* Ensure child elements are in 3D space */
+  transition: transform 0.2s;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.flashcard .sticker {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 0;
+  height: 0;
+  border-top: 50px solid transparent;
+  border-right: 50px solid transparent;
+  z-index: 1;
+}
+
+.flashcard .sticker.yellow {
+  border-top-color: #FFA500;
+}
+
+.flashcard .sticker.red {
+  border-top-color: #FF4500;
+}
+
+.card-container .no-rt rt {
+  display: none;
+}
 
 .card-manager {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 15px;
 }
 
-.dropdown {
-  padding: 8px;
+.card-manager>.expand {
+  flex-grow: 1;
+}
+
+.card-manager select,
+.card-manager button {
+  padding: 10px 15px;
   font-size: 16px;
+  border-radius: 5px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-manager select {
+  background-color: #f8f8f8;
+}
+
+.card-manager button {
+  font-weight: bold;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.difficulty-button {
-  padding: 8px 12px;
-  font-size: 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
+.card-manager button.yellow {
+  background: linear-gradient(135deg, #FFA500, #FF8C00);
 }
 
-.difficulty-button:hover {
-  transform: scale(1.05);
+.card-manager button.red {
+  background: linear-gradient(135deg, #FF4500, #FF6347);
 }
 
-.very-hard {
-  background-color: red;
-  color: white;
+.card-manager button:hover {
+  box-shadow: 0 6px 10px rgba(0, 0s, 0, 0.3);
 }
 
-.hard {
-  background-color: orange;
-  color: white;
+.card-manager button:active {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
