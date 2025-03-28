@@ -15,8 +15,10 @@ export default function FlashCard() {
 
   // Load dict
   useEffect(() => {
-    fetch('/nihongo-card/lib/dict.txt')
-      .then((response) => response.text())
+    fetch('/nihongo-card/lib/dict.txt', {
+      method: 'GET',
+      cache: 'no-store'  // prevent cache
+    }).then((response) => response.text())
       .then((data) => {
         const parsedData = parseToDict(data);
         console.log('dict size', parsedData.length);
