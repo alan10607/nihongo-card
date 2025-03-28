@@ -9,8 +9,8 @@ export default function FlashCard() {
   const [flipped, setFlipped] = useState(false);
   const [startX, setStartX] = useState(0); // Use this to follow up touching
   const [showRt, setShowRt] = useState(false);
-  const DIFFICULTY = { LV1: 0, LV2: 1, DEFAULT: -1 };
-  const [markList, setMarkList] = useLocalStorage('markList', [[], []]);
+  const DIFFICULTY = { LV1: 1, LV2: 2, DEFAULT: -1 };
+  const [markList, setMarkList] = useLocalStorage('markDict', {});
   const [markLevel, setMarkLevel] = useState(DIFFICULTY.DEFAULT);
 
   // Load dict
@@ -83,14 +83,9 @@ export default function FlashCard() {
   }
 
   const isInMarkLevel = (key) => {
-    if (markLevel === DIFFICULTY.LV1) {
-      return markList[DIFFICULTY.LV1].includes(key);
-    } else if (markLevel === DIFFICULTY.LV2) {
-      return markList[DIFFICULTY.LV1].includes(key) 
-          || markList[DIFFICULTY.LV2].includes(key);
-    } else {
-      return true;
-    }
+    if (markLevel === DIFFICULTY.DEFAULT) return true;
+    if (!markList[key]) return false;
+    return markList[key] >= markLevel;
   }
 
   const handleFlip = () => setFlipped((prev) => !prev);
@@ -139,30 +134,33 @@ export default function FlashCard() {
   }, [dict]);
 
   const handleTagChange = (event) => {
-    setTagIndex(event.target.value);
-    setIndex(event.target.value);
+    const nextIndex = Number(event.target.value);
+    setTagIndex(nextIndex);
+    setIndex(nextIndex);
   };
 
   const handleMarkDifficulty = (difficulty) => {
+    const newMarkList = { ...markList };
     const key = dict[index].raw;
-    const updatedList = markList[difficulty].includes(key)
-      ? markList[difficulty].filter(item => item !== key)
-      : [...markList[difficulty], key];
+    difficulty = Number(difficulty);
+    if (newMarkList[key] === difficulty) {
+      delete newMarkList[key];
+    } else {
+      newMarkList[key] = difficulty;
+    }
 
-    const newMarkList = [...markList];
-    newMarkList[difficulty] = updatedList;
     setMarkList(newMarkList);
   };
 
   const handleMarkFilterChange = (event) => {
-    setMarkLevel(event.target.value);
+    setMarkLevel(Number(event.target.value));
   };
 
   const getStickerColorCss = () => {
     const key = dict[index].raw;
-    if (markList[DIFFICULTY.LV2].includes(key)) return "red";
-    if (markList[DIFFICULTY.LV1].includes(key)) return "yellow";
-    return ""
+    if (markList[key] === DIFFICULTY.LV1) return 'yellow';
+    if (markList[key] === DIFFICULTY.LV2) return 'red';
+    return ''
   }
 
   const getTagOptions = () => {
@@ -174,7 +172,6 @@ export default function FlashCard() {
         </option>
       ));
   }
-
 
   return (
     <div className='root-container'>
@@ -188,7 +185,7 @@ export default function FlashCard() {
           <option value={DIFFICULTY.LV1}>☆</option>
           <option value={DIFFICULTY.LV2}>☆☆</option>
         </select>
-        <button onClick={handleShowRt}>あ</button>
+        <button className={showRt ? 'selected' : ''} onClick={handleShowRt}>あ</button>
         <button className='yellow' onClick={() => handleMarkDifficulty(DIFFICULTY.LV1)}>☆</button>
         <button className='red' onClick={() => handleMarkDifficulty(DIFFICULTY.LV2)}>☆☆</button>
       </div>
@@ -203,7 +200,7 @@ export default function FlashCard() {
           >
             <div className={`sticker ${getStickerColorCss()}`}></div>
             <div className='front'>
-              <div className={`${showRt ? '' : 'no-rt'}`} dangerouslySetInnerHTML={{ __html: dict[index].html }} />
+              <div className={showRt ? '' : 'no-rt'} dangerouslySetInnerHTML={{ __html: dict[index].html }} />
             </div>
             <div className='back'>
               <div dangerouslySetInnerHTML={{ __html: dict[index].html }} />
@@ -211,6 +208,11 @@ export default function FlashCard() {
             </div>
           </div>
         )}
+      </div>
+
+      <div className='card-foot'>
+        <div className='expand'></div>
+        <div>{`${index + 1} / ${dict.length}`}</div>
       </div>
     </div>
   );

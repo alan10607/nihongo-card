@@ -3,10 +3,9 @@
   flex-direction: column;
   gap: 15px;
   height: 100vh;
-  padding: 15px 5px;
 }
 
-.root-container> :first-child {
+.root-container> div {
   flex-grow: 0;
 }
 
@@ -22,6 +21,7 @@ ruby rt {
   display: flex;
   justify-content: center;
   margin-top: 50px;
+  margin-bottom: 50px;
 }
 
 .flashcard {
@@ -107,9 +107,10 @@ ruby rt {
   display: flex;
   align-items: center;
   gap: 5px;
+  padding: 15px 10px;
 }
 
-.card-manager>.expand {
+.expand {
   flex-grow: 1;
 }
 
@@ -132,6 +133,11 @@ ruby rt {
   transition: all 0.3s ease;
 }
 
+.card-manager button.selected {
+  background-color: #919191;
+}
+
+
 .card-manager button.yellow {
   background: linear-gradient(135deg, #FFA500, #FF8C00);
 }
@@ -146,4 +152,17 @@ ruby rt {
 
 .card-manager button:active {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  font-size: 14px;
+  font-weight: 300;
+  color: #666;
 }
