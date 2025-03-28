@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import useLocalStorage from '../../utils/useLocalStorage';
-import * as yaml from 'js-yaml';
 import './style.css';
 
 export default function FlashCard() {
@@ -9,9 +8,10 @@ export default function FlashCard() {
   const [tagIndex, setTagIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [startX, setStartX] = useState(0); // Use this to follow up touching
-  const [markList, setMarkList] = useLocalStorage('markList', [[], []]);
-  const [filter, setFilter] = useState(-1);
   const [showRt, setShowRt] = useState(false);
+  const DIFFICULTY = { LV1: 0, LV2: 1, DEFAULT: -1 };
+  const [markList, setMarkList] = useLocalStorage('markList', [[], []]);
+  const [markFilterLevel, setMarkFilterLevel] = useState(DIFFICULTY.DEFAULT);
 
   // Load dict
   useEffect(() => {
@@ -19,10 +19,12 @@ export default function FlashCard() {
       .then((response) => response.text())
       .then((data) => {
         const parsedData = parseToDict(data);
+        console.log('dict size', parsedData.length);
         setDict(parsedData);
+        setIndex(0);
       })
       .catch((error) => console.error('Error loading dict:', error));
-  }, []);
+  }, [markFilterLevel]);
 
   const parseToDict = (data) => {
     const lines = data.split('\n');
@@ -31,6 +33,7 @@ export default function FlashCard() {
     let tag = '';
     for (const line of lines) {
       if (line === '') continue;
+      if (markFilterLevel >= 0 && !markList[markFilterLevel].includes(line)) continue;
       if (line.includes('**')) { // to tag in next card
         tag = line.replaceAll('*', '');
         continue;
@@ -69,7 +72,7 @@ export default function FlashCard() {
       }
 
       html += '</ruby>';
-      tempDict.push({ html, exp, tag });
+      tempDict.push({ html, exp, tag, raw: line });
 
       tag = '';
     }
@@ -127,46 +130,54 @@ export default function FlashCard() {
     setIndex(event.target.value);
   };
 
-  const handleFilterChange = (event) => {
-  };
-
   const handleMarkDifficulty = (difficulty) => {
-    const updatedList = markList[difficulty].includes(index)
-      ? markList[difficulty].filter(item => item !== index)
-      : [...markList[difficulty], index];
+    const key = dict[index].raw;
+    const updatedList = markList[difficulty].includes(key)
+      ? markList[difficulty].filter(item => item !== key)
+      : [...markList[difficulty], key];
 
     const newMarkList = [...markList];
     newMarkList[difficulty] = updatedList;
     setMarkList(newMarkList);
   };
 
+  const handleMarkFilterChange = (event) => {
+    setMarkFilterLevel(event.target.value);
+  };
+
   const getStickerColorCss = () => {
-    if (markList[1].includes(index)) return "red";
-    if (markList[0].includes(index)) return "yellow";
+    const key = dict[index].raw;
+    if (markList[DIFFICULTY.LV2].includes(key)) return "red";
+    if (markList[DIFFICULTY.LV1].includes(key)) return "yellow";
     return ""
   }
+
+  const getTagOptions = () => {
+    return dict.map((data, index) => ({ text: data.tag, value: index }))
+      .filter(item => !!item.text)
+      .map((item) => (
+        <option key={item.value} value={item.value}>
+          {item.text}
+        </option>
+      ));
+  }
+
 
   return (
     <div className='root-container'>
       <div className='card-manager'>
         <select value={tagIndex} onChange={handleTagChange}>
-          {dict.map((data, index) => ({ text: data.tag, value: index }))
-            .filter(item => !!item.text)
-            .map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.text}
-              </option>
-            ))}
+          {getTagOptions()}
         </select>
         <div className='expand'></div>
-        <select value={filter} onChange={handleFilterChange}>
-          <option value='-1'>-</option>
-          <option value='0'>☆</option>
-          <option value='1'>☆☆</option>
+        <select value={markFilterLevel} onChange={handleMarkFilterChange}>
+          <option value={DIFFICULTY.DEFAULT}>-</option>
+          <option value={DIFFICULTY.LV1}>☆</option>
+          <option value={DIFFICULTY.LV2}>☆☆</option>
         </select>
         <button onClick={handleShowRt}>あ</button>
-        <button className='yellow' onClick={() => handleMarkDifficulty(0)}>☆</button>
-        <button className='red' onClick={() => handleMarkDifficulty(1)}>☆☆</button>
+        <button className='yellow' onClick={() => handleMarkDifficulty(DIFFICULTY.LV1)}>☆</button>
+        <button className='red' onClick={() => handleMarkDifficulty(DIFFICULTY.LV2)}>☆☆</button>
       </div>
 
       <div className='card-container'>
@@ -189,6 +200,5 @@ export default function FlashCard() {
         )}
       </div>
     </div>
-
   );
 }

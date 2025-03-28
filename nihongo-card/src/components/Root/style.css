@@ -106,7 +106,7 @@ ruby rt {
 .card-manager {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 5px;
 }
 
 .card-manager>.expand {
