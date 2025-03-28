@@ -1,56 +1,113 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import useLocalStorage from "../../utils/useLocalStorage";
 import * as yaml from 'js-yaml';
 import './style.css';
-
-class Word {
-  constructor() {
-    this.textAndRt = [];
-  }
-
-  pushText(text, spell = '') {
-    this.textAndRt.push({ text, spell });
-  }
-
-  getText() {
-    return this.textAndRt.map(item => `<ruby>${item.text}</ruby>`).join(' ');
-  }
-
-  getTextAndRt() {
-    return this.textAndRt.map(item => `<ruby>${item.text}<rt>${item.spell}</rt></ruby>`).join(' ')
-  }
-}
 
 export default function FlashCard() {
   const [dict, setDict] = useState([]);
   const [index, setIndex] = useState(0);
+  const [tagIndex, setTagIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [startX, setStartX] = useState(0); // Use this to follow up touching
-  const [text, setText] = useState('');
-  const [textAndRt, setTextAndRt] = useState('');
-  const [exp, setExp] = useState('');
+  const [markList, setMarkList] = useLocalStorage("markList", [[],[]]);
+  const filterValue = useRef(-1);
 
   // Load dict
   useEffect(() => {
-    fetch('/nihongo-card/lib/dict.yaml')
+    fetch('/nihongo-card/lib/dict.txt')
       .then((response) => response.text())
       .then((data) => {
-        const parsedData = yaml.load(data);
+        const parsedData = parseToDict(data);
         setDict(parsedData);
       })
-      .catch((error) => console.error("Error loading YAML:", error));
+      .catch((error) => console.error("Error loading dict:", error));
   }, []);
+  
+  const parseToDict = (data) => {
+    const lines = data.split('\n');
+    const tempDict = [];
+
+    let tag = '';
+    for (const line of lines) {
+      if (line === '') continue;
+      if (line.includes('**')) { // to tag in next card
+        tag = line.replaceAll('*', '');
+        continue;
+      }
+
+      const wordAndExp = line.split(":");
+      const word = wordAndExp[0];
+      const exp = wordAndExp[1] || '';
+      let html = '<ruby>';
+      let rtFlag = false;
+      let multiRt = false;
+    
+      for (let i = 0; i < word.length; i++) {
+        const ch = word[i];
+        if (ch === ' ') {
+          // do nothing
+        } else if (ch === ',') {
+          html += ', ';
+        } else if (ch === '<') { // rt for multi word
+          html += '</ruby> <ruby>';
+          multiRt = true;
+        } else if (ch === '>') {
+          multiRt = false;
+        } else if (ch === '(') {
+          html += '<rt>';
+          rtFlag = true;
+        } else if (ch === ')') {
+          html += '</rt>';
+          rtFlag = false;
+        } else {
+          if (i > 0 && !rtFlag && !multiRt) {
+            html += '</ruby> <ruby>';
+          }
+          html += ch;
+        }
+      }
+    
+      html += '</ruby>';
+      tempDict.push({ html, exp, tag });
+
+      tag = '';
+    }
+
+    return tempDict;
+  }
 
   const handleFlip = () => setFlipped((prev) => !prev);
 
   const nextCard = () => {
-    setIndex((prev) => (prev + 1) % dict.length);
+    setIndex((prev) => {
+      let newIndex = prev;
+      for (let i = 0; i < dict.length; i++) {
+        newIndex = (newIndex + 1) % dict.length;
+        if (filterValue.current < 0 || markList[filterValue.current].includes(dict[newIndex])) {
+          return newIndex;
+        }
+      }
+
+      return prev;
+    });
     setFlipped(false);
   }
 
   const prevCard = () => {
-    setIndex((prev) => (prev - 1 + dict.length) % dict.length);
+    setIndex((prev) => {
+      let newIndex = prev;
+      for (let i = 0; i < dict.length; i++) {
+        newIndex = (newIndex - 1 + dict.length) % dict.length;
+        if (filterValue.current < 0 || markList[filterValue.current].includes(dict[newIndex])) {
+          return newIndex;
+        }
+      }
+
+      return prev;
+    });
     setFlipped(false);
-  }
+  };
+  
 
   const handleTouchStart = (e) => {
     const touchStart = e.touches[0].clientX;
@@ -84,59 +141,67 @@ export default function FlashCard() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [dict]);
 
-  useEffect(() => {
-    if (dict.length === 0) return;
+  const handleTagChange = (event) => {
+    setTagIndex(event.target.value);
+    setIndex(event.target.value);
+  };
 
-    const words = dict[index].word.split(' ');
-    const tempWordData = new Word();
+  const handleFilterChange = (event) => {
+    filterValue.current = Number(event.target.value);
+  };
 
-    for (const word of words) {
-      if (word.includes('(') && word.includes(')')) {
-        const openParenIndex = word.indexOf('(');
-        const closeParenIndex = word.indexOf(')');
-  
-        const mainWord = word.substring(0, openParenIndex);
-        const pronunciation = word.substring(openParenIndex + 1, closeParenIndex);
-        const remained = word.substring(closeParenIndex + 1);
+  const handleMarkDifficulty = (difficulty) => {
+    const updatedList = markList[difficulty].includes(index)
+      ? markList[difficulty].filter(item => item !== index)
+      : [...markList[difficulty], index]; 
 
-        tempWordData.pushText(mainWord, pronunciation);
-        if (remained) {
-          remained.split('').forEach((w) => {
-            tempWordData.pushText(w); 
-          });
-        }
-      } else {
-        word.split('').forEach((w) => {
-          tempWordData.pushText(w); 
-        });
-      }
-    }
-
-    setText(tempWordData.getText());
-    setTextAndRt(tempWordData.getTextAndRt());
-    setExp(dict[index].exp ? dict[index].exp : '');
-  }, [dict, index]);
-
+    const newMarkList = [...markList];
+    newMarkList[difficulty] = updatedList;
+    setMarkList(newMarkList);
+  };
 
   return (
-    <div className="card-container">
-      {dict.length > 0 && (
-        <div
-          className={`flashcard ${flipped ? 'flipped' : ''}`}
-          onClick={handleFlip}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div className="front">
-            <div dangerouslySetInnerHTML={{ __html: text}} />
-          </div>
-          <div className="back">
-            <div dangerouslySetInnerHTML={{ __html: textAndRt}} />
+    <div>
+      <div className="card-manager">
+        Go to:
+        <select value={tagIndex} onChange={handleTagChange}>
+          {dict.map((data, index) => ({ text: data.tag, value: index }))
+            .filter(item => !!item.text)
+            .map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.text}
+              </option>
+          ))}
+        </select>
+        Select note:
+        <select value={filterValue} onChange={handleFilterChange}>
+          <option value="-1">-</option>
+          <option value="0">☆</option>
+          <option value="1">☆☆</option>
+        </select>
+        <button onClick={() => handleMarkDifficulty(0)}>☆</button>
+        <button onClick={() => handleMarkDifficulty(1)}>☆☆</button>
+      </div>
 
-            <div className="exp">{exp}</div>
-          </div>
+      <div className="card-container">
+          {dict.length > 0 && (
+            <div
+              className={`flashcard ${flipped ? 'flipped' : ''}`}
+              onClick={handleFlip}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div className="front">
+                <div dangerouslySetInnerHTML={{ __html: dict[index].html}} />
+              </div>
+              <div className="back">
+                <div className="no-rt" dangerouslySetInnerHTML={{ __html: dict[index].html}} />
+                <div className="exp">{dict[index].exp}</div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
     </div>
+ 
   );
 }

@@ -3,7 +3,7 @@ body {
   font-family: Arial, sans-serif;
 }
 
-ruby {
+ruby rt{
   font-family: 'Brush Script MT', 'KaiTi', 'SimKai', 'Yu Mincho', serif; 
 }
 
@@ -36,7 +36,7 @@ ruby {
   height: 100%;
   display: flex;
   justify-content: center;
-  font-size: 3em;
+  font-size: 6vw;
   backface-visibility: hidden;
   color: black;
   align-content: center;
@@ -54,5 +54,43 @@ ruby {
 }
 
 .back .exp {
-  font-size: 0.6em;
+  font-size: 4vw;
+}
+
+
+.card-manager {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.dropdown {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.difficulty-button {
+  padding: 8px 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.difficulty-button:hover {
+  transform: scale(1.05);
+}
+
+.very-hard {
+  background-color: red;
+  color: white;
+}
+
+.hard {
+  background-color: orange;
+  color: white;
 }
