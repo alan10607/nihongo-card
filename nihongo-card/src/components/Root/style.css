@@ -123,9 +123,6 @@ ruby rt {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.card-manager select {
   background-color: #f8f8f8;
 }
 
