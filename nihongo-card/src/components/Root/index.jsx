@@ -212,7 +212,7 @@ export default function FlashCard() {
 
       <div className='card-foot'>
         <div className='expand'></div>
-        <div>{`${index + 1} / ${dict.length}`}</div>
+        <div>{index + 1}</div>
       </div>
     </div>
   );
