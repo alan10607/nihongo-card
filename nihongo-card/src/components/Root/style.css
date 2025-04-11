@@ -3,14 +3,11 @@
   flex-direction: column;
   gap: 15px;
   height: 100vh;
+  padding: 15px;
 }
 
-.root-container> div {
+.root-container>div {
   flex-grow: 0;
-}
-
-.root-container> :nth-child(2) {
-  flex-grow: 1;
 }
 
 ruby rt {
@@ -20,16 +17,27 @@ ruby rt {
 .card-container {
   display: flex;
   justify-content: center;
-  margin-top: 50px;
-  margin-bottom: 50px;
+  margin-top: 15px;
+  gap: 5px;
+}
+
+.card-container>button {
+  border: 0;
+  font-weight: bold;
+  background: #ffffff00;
+  width: 30px;
+  text-align: center;
+  font-size: 1.5em;
 }
 
 .flashcard {
   width: 80vw;
   height: 60vw;
   position: relative;
-  perspective: 1000px; /* Set the visual perspective */
-  transform-style: preserve-3d; /* Ensure child elements are in 3D space */
+  perspective: 1000px;
+  /* Set the visual perspective */
+  transform-style: preserve-3d;
+  /* Ensure child elements are in 3D space */
   transition: transform 0.2s;
   background-color: white;
   border-radius: 10px;
@@ -37,7 +45,8 @@ ruby rt {
 }
 
 .flashcard.flipped {
-  transform: rotateX(180deg); /* When card flipped, rotate 180 deg */
+  transform: rotateX(180deg);
+  /* When card flipped, rotate 180 deg */
 }
 
 .front,
@@ -47,7 +56,7 @@ ruby rt {
   height: 100%;
   display: flex;
   justify-content: center;
-  font-size: 10vw;
+  font-size: 2.2em;
   backface-visibility: hidden;
   color: black;
   align-content: center;
@@ -61,19 +70,32 @@ ruby rt {
 
 .back {
   font-weight: bold;
-  transform: rotateX(180deg); /* The back needs to be flipped 180 degrees first */
+  transform: rotateX(180deg);
+  /* The back needs to be flipped 180 degrees first */
+}
+
+.front>div,
+.back>div {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  align-content: flex-end;
 }
 
 .back .exp {
-  font-size: 6vw;
+  font-size: 0.8em;
 }
 
 .flashcard {
   width: 80vw;
   height: 60vw;
   position: relative;
-  perspective: 1000px;/* Set the visual perspective */
-  transform-style: preserve-3d; /* Ensure child elements are in 3D space */
+  perspective: 1000px;
+  /* Set the visual perspective */
+  transform-style: preserve-3d;
+  /* Ensure child elements are in 3D space */
   transition: transform 0.2s;
   background-color: white;
   border-radius: 10px;
@@ -107,7 +129,6 @@ ruby rt {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 15px 10px;
 }
 
 .expand {
@@ -154,6 +175,10 @@ ruby rt {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.card-manager .go-to-selector {
+  width: 100%;
+}
+
 .card-foot {
   display: flex;
   align-items: center;
@@ -165,4 +190,10 @@ ruby rt {
   font-size: 14px;
   font-weight: 300;
   color: #666;
+  transition: transform 0.2s;
+  opacity: 0;
+}
+
+.card-foot:hover {
+  opacity: 1;
 }

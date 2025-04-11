@@ -15,9 +15,17 @@
 }
 
 body {
-  margin: 0;
-  overflow: hidden;
+  margin: 0 auto;
+  max-width: 430px;
+  overflow: auto;
 }
+
+@media (max-width: 430px) {
+  body {
+    overflow: hidden;
+  }
+}
+
 
 button,
 select {

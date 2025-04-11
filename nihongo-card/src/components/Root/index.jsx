@@ -12,6 +12,7 @@ export default function FlashCard() {
   const DIFFICULTY = { LV1: 1, LV2: 2, DEFAULT: -1 };
   const [markList, setMarkList] = useLocalStorage('markDict', {});
   const [markLevel, setMarkLevel] = useState(DIFFICULTY.DEFAULT);
+  const [goToIndex, setGoToIndex] = useState(-1);
 
   // Load dict
   useEffect(() => {
@@ -110,9 +111,9 @@ export default function FlashCard() {
     const touchEnd = e.changedTouches[0].clientX;
     const distance = touchEnd - startX;
 
-    if (distance > 50) {
+    if (distance > 30) {
       prevCard();
-    } else if (distance < -50) {
+    } else if (distance < -30) {
       nextCard();
     }
   };
@@ -137,6 +138,7 @@ export default function FlashCard() {
     const nextIndex = Number(event.target.value);
     setTagIndex(nextIndex);
     setIndex(nextIndex);
+    setFlipped(false);
   };
 
   const handleMarkDifficulty = (difficulty) => {
@@ -165,13 +167,22 @@ export default function FlashCard() {
 
   const getTagOptions = () => {
     return dict.map((data, index) => ({ text: data.tag, value: index }))
-      .filter(item => !!item.text)
+      .filter(item => !!item.text) // exclude empty tag
       .map((item) => (
         <option key={item.value} value={item.value}>
           {item.text}
         </option>
       ));
   }
+
+  const handleGoToChange = (event) => {
+    const nextIndex = Number(event.target.value);
+    if (nextIndex === -1) return;
+    
+    setGoToIndex(nextIndex);
+    setIndex(nextIndex);
+    setFlipped(false);
+  };
 
   return (
     <div className='root-container'>
@@ -189,8 +200,21 @@ export default function FlashCard() {
         <button className='yellow' onClick={() => handleMarkDifficulty(DIFFICULTY.LV1)}>☆</button>
         <button className='red' onClick={() => handleMarkDifficulty(DIFFICULTY.LV2)}>☆☆</button>
       </div>
+      
+      <div className='card-manager'>
+        <select className='go-to-selector' value={goToIndex} onChange={handleGoToChange}>
+        <option key='-1' value='-1'>-</option>
+          {dict.map((data, index) => (
+            <option key={index} value={index}>
+              {data.raw}
+            </option>
+          ))}
+        </select>
+      </div>
+
 
       <div className='card-container'>
+        <button onClick={prevCard}>{"<"}</button>
         {dict.length > 0 && (
           <div
             className={`flashcard ${flipped ? 'flipped' : ''}`}
@@ -208,11 +232,12 @@ export default function FlashCard() {
             </div>
           </div>
         )}
+        <button onClick={nextCard}>{">"}</button>
       </div>
 
       <div className='card-foot'>
         <div className='expand'></div>
-        <div>{index + 1}</div>
+        <div className='tooltip'>{index + 1}</div>
       </div>
     </div>
   );
