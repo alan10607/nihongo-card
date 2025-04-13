@@ -1,0 +1,21 @@
+.tool-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  height: 100vh;
+  padding: 15px;
+}
+
+textarea {
+  height: 30vh;
+}
+
+.tool-manager {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tool-manager button, .tool-manager label {
+  font-size: 18px;
+}

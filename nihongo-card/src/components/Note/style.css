@@ -1,0 +1,121 @@
+body {
+  overflow: auto;
+}
+
+@media (max-width: 430px) {
+  body {
+    overflow: auto;
+  }
+}
+
+.note-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  height: 100vh;
+  padding: 15px;
+}
+
+.note-container .displayer {
+  white-space: pre-line;
+}
+
+.displayer {
+  font-size: 16px;
+  color: #2d2d2d;
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  font-family: 'Segoe UI', 'Helvetica', 'Arial', sans-serif;
+}
+
+.displayer h1 {
+  font-size: 2em;
+  margin-top: 1em;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 0.3em;
+}
+
+.displayer h2 {
+  font-size: 1.5em;
+  margin-top: 1em;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.3em;
+}
+
+.displayer h3 {
+  font-size: 1.2em;
+  margin-top: 1em;
+}
+
+.displayer p {
+  margin: 1em 0;
+}
+
+.displayer ul, .displayer ol {
+  padding-left: 2em;
+}
+
+.displayer li {
+  margin-bottom: 0.3em;
+}
+
+.displayer table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.displayer th, .displayer td {
+  border: 1px solid #ddd;
+  padding: 0.75em;
+  text-align: center;
+}
+
+.displayer th {
+  background-color: #f6f8fa;
+}
+
+.displayer blockquote {
+  border-left: 4px solid #ccc;
+  padding-left: 1em;
+  color: #666;
+  margin: 1em 0;
+  background-color: #f9f9f9;
+}
+
+.displayer code {
+  background-color: #f4f4f4;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95em;
+}
+
+.displayer pre {
+  background-color: #1e1e1e;
+  color: #f8f8f2;
+  padding: 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-top: 1em;
+}
+
+.displayer pre code {
+  background: none;
+  color: inherit;
+}
+
+.displayer a {
+  color: #0070f3;
+  text-decoration: none;
+}
+
+.displayer a:hover {
+  text-decoration: underline;
+}
+
+.displayer del { /* remove del function */
+  text-decoration: inherit;
+}

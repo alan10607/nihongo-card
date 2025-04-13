@@ -3,7 +3,6 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
   color: black;
   background-color: #dcdcdc;
   font-family: Arial, sans-serif;
@@ -26,8 +25,27 @@ body {
   }
 }
 
-
+select,
 button,
-select {
+textarea {
   color: black;
+  padding: 10px 15px;
+  font-size: 24px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f8f8;
+}
+
+label {
+  color: black;
+  padding: 10px 15px;
+  font-size: 24px;
+  border-radius: 5px;
+  height: 60px;
+  display: flex;
+  align-items: center;
 }

@@ -135,19 +135,6 @@ ruby rt {
   flex-grow: 1;
 }
 
-.card-manager select,
-.card-manager button {
-  padding: 10px 15px;
-  font-size: 24px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f8f8f8;
-}
-
 .card-manager button {
   font-weight: bold;
   cursor: pointer;
@@ -157,7 +144,6 @@ ruby rt {
 .card-manager button.selected {
   background-color: #919191;
 }
-
 
 .card-manager button.yellow {
   background: linear-gradient(135deg, #FFA500, #FF8C00);
