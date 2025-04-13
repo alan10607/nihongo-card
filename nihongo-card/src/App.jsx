@@ -1,36 +1,16 @@
-import './App.css'
+import { useRoutes, Navigate } from 'react-router-dom'
 import Root from './components/Root'
 import Tool from './components/Tool'
 import Note from './components/Note'
-import { Navigate, useRoutes } from "react-router-dom"
 
 const routeConfig = [
-  {
-    path: "/nihongo-card/",
-    element: <Root />
-  },
-  {
-    path: "/nihongo-card/tool",
-    element: <Tool />
-  },
-  {
-    path: "/nihongo-card/note",
-    element: <Note />
-  },
-  {
-    path: "*",
-    element: <Navigate to="/nihongo-card/" replace />
-  }
+  { path: '/', element: <Root /> },
+  { path: '/tool', element: <Tool /> },
+  { path: '/note', element: <Note /> },
+  { path: '*', element: <Navigate to='/' replace /> }
 ]
 
-function App() {
+export default function App() {
   const element = useRoutes(routeConfig)
-
-  return (
-    <>
-      {element}
-    </>
-  )
+  return <>{element}</>
 }
-
-export default App
