@@ -2,18 +2,13 @@ body {
   overflow: auto;
 }
 
-@media (max-width: 430px) {
-  body {
-    overflow: auto;
-  }
-}
-
 .note-container {
   display: flex;
   flex-direction: column;
   gap: 5px;
   height: 100vh;
   padding: 15px;
+  overflow: scroll;
 }
 
 .note-container .displayer {
