@@ -35,7 +35,7 @@ export default function FlashCard() {
 
     let tag = '';
     for (const line of lines) {
-      if (line === '') continue;
+      if (line.trim() === '') continue;
       if (!isInMarkLevel(line)) continue;
       if (line.includes('**')) { // to tag in next card
         tag = line.replaceAll('*', '');
@@ -139,6 +139,7 @@ export default function FlashCard() {
     setTagIndex(nextIndex);
     setIndex(nextIndex);
     setFlipped(false);
+    setGoToIndex(nextIndex);
   };
 
   const handleMarkDifficulty = (difficulty) => {
@@ -203,7 +204,6 @@ export default function FlashCard() {
       
       <div className='card-manager'>
         <select className='go-to-selector' value={goToIndex} onChange={handleGoToChange}>
-        <option key='-1' value='-1'>-</option>
           {dict.map((data, index) => (
             <option key={index} value={index}>
               {data.raw}
