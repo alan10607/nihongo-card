@@ -1,7 +1,3 @@
-body {
-  overflow: auto;
-}
-
 .note-container {
   display: flex;
   flex-direction: column;

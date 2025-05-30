@@ -10,6 +10,10 @@
   flex-grow: 0;
 }
 
+ruby+ruby {
+  margin-left: 5px;
+}
+
 ruby rt {
   font-family: 'Brush Script MT', 'KaiTi', 'SimKai', 'Yu Mincho', serif;
 }
@@ -34,6 +38,7 @@ ruby rt {
 .flashcard {
   width: 80vw;
   height: 60vw;
+  max-height: 320px;
   position: relative;
   perspective: 1000px;
   /* Set the visual perspective */
@@ -89,20 +94,6 @@ ruby rt {
   font-size: 0.8em;
 }
 
-.flashcard {
-  width: 80vw;
-  height: 60vw;
-  position: relative;
-  perspective: 1000px;
-  /* Set the visual perspective */
-  transform-style: preserve-3d;
-  /* Ensure child elements are in 3D space */
-  transition: transform 0.2s;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
 .flashcard .sticker {
   position: absolute;
   top: 5px;
@@ -129,7 +120,18 @@ ruby rt {
 .card-manager {
   display: flex;
   align-items: center;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
   gap: 5px;
+}
+
+.card-manager>div,
+.card-manager>select,
+.card-manager>button,
+.card-manager>input[type="text"] {
+  flex-grow: 0;
+  min-width: 0;
 }
 
 .expand {
@@ -162,7 +164,7 @@ ruby rt {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.card-manager .go-to-selector {
+.card-manager .search-selector {
   width: 100%;
 }
 
