@@ -216,12 +216,14 @@ export default function FlashCard() {
     const target = event.target.value.trim();
     setSearchValue(target);
 
-    if (target) {
+    if (target !== '') {
       const firstFound = cards.find(card => card.word.includes(target));
       if (firstFound) {
         setIndex(firstFound.index);
         setSearchIndex(firstFound.index);
       }
+    } else {
+      setSearchIndex(0);
     }
   };
 
