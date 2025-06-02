@@ -183,6 +183,7 @@ export default function FlashCard() {
     const nextIndex = Number(event.target.value);
     setTagIndex(nextIndex);
     setIndex(nextIndex);
+    setSearchIndex(nextIndex);
     setFlipped(false);
   };
 
