@@ -223,8 +223,6 @@ export default function FlashCard() {
         setIndex(firstFound.index);
         setSearchIndex(firstFound.index);
       }
-    } else {
-      setSearchIndex(0);
     }
   };
 
