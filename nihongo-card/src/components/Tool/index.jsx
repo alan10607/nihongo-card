@@ -44,7 +44,8 @@ export default function FlashCard() {
       .replaceAll('、', ',')
       .replaceAll('＝', '=')
       .replaceAll('｜', '|')
-      .replaceAll('～', '~');
+      .replaceAll('～', '~')
+      .replaceAll('〜', '~');
 
     if (removeEmpty) {
       text = text.replaceAll(' ', '');
