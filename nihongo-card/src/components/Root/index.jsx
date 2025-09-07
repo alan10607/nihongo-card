@@ -4,18 +4,17 @@ import './style.css';
 
 export default function FlashCard() {
   const DIFFICULTY = { LV1: 1, LV2: 2, DEFAULT: -1 };
-  const [rawData, setRawData] = useState('');
+  const [originalCards, setOriginalCards] = useState([]);
   const [cards, setCards] = useState([]);
-  const [tags, setTags] = useState([]);
   const [index, setIndex] = useState(0);
-  const [tagIndex, setTagIndex] = useState(0);
+  const [tags, setTags] = useState([]);
+  const [selectedTag, setSelectedTag] = useState(0);
+  const [cardDifficultyMap, setCardDifficultyMap] = useLocalStorage('markDict', {});
+  const [selectedDifficulty, setSelectedDifficulty] = useState(DIFFICULTY.DEFAULT);
+  const [searchValue, setSearchValue] = useState('');
   const [startX, setStartX] = useState(0); // Use this to follow up touching
   const [flipped, setFlipped] = useState(false);
   const [showRt, setShowRt] = useState(false);
-  const [markLevel, setMarkLevel] = useState(DIFFICULTY.DEFAULT);
-  const [markList, setMarkList] = useLocalStorage('markDict', {});
-  const [searchValue, setSearchValue] = useState('');
-  const [searchIndex, setSearchIndex] = useState(0);
 
   // Load dict
   useEffect(() => {
@@ -23,47 +22,35 @@ export default function FlashCard() {
       method: 'GET',
       cache: 'no-store'  // prevent cache
     }).then(response => response.text())
-      .then(setRawData)
+      .then(setup)
       .catch((error) => console.error('Error loading dict:', error));
   }, []);
 
-  useEffect(() => {
-    if (!rawData) return;
-
-    const { cards, tags } = parseLinesToCardsAndTags(rawData, markLevel, markList);
+  const setup = (rawData) => {
+    const { cards, tags } = parseLinesToCardsAndTags(rawData);
     console.log('Cards size:', cards.length);
-    setCards(cards);
+    setOriginalCards(cards);
     setTags(tags);
-    setIndex(0);
-    setTagIndex(0);
-    setFlipped(false);
-  }, [rawData, markLevel]);
+  };
 
-  const parseLinesToCardsAndTags = (data, markLevel, markList) => {
+  const parseLinesToCardsAndTags = (data) => {
     return data.split('\n')
       .map(line => line.trim())
       .filter(line => line !== '')
-      .filter(line => isInMarkLevel(line, markLevel, markList))
       .reduce(reduceLines, { cards: [], tags: [] });
   };
 
-  const isInMarkLevel = (key, markLevel, markList) => {
-    if (markLevel === DIFFICULTY.DEFAULT) return true;
-    if (!markList[key]) return false;
-    return markList[key] >= markLevel;
-  };
-
   const reduceLines = (acc, line, i) => {
-    const nextIndex = acc.cards.length;
+    const id = acc.cards.length;
+    const tag = acc.tags.length > 0 ? acc.tags[acc.tags.length - 1] : null;
     if (line.includes('**')) {
-      acc.tags.push({
-        text: line.replaceAll('*', ''),
-        value: nextIndex
-      });
+      const nextTag = line.replaceAll('*', '');
+      acc.tags.push(nextTag);
     } else {
       const [word, exp = ''] = line.split(':');
       acc.cards.push({
-        index: nextIndex,
+        id,
+        tag,
         word,
         exp,
         raw: line
@@ -72,7 +59,88 @@ export default function FlashCard() {
     return acc;
   };
 
-  const parseRubyJSX = (word) => {
+  // Card filter
+  useEffect(() => {
+    const filteredCards = originalCards
+      .filter(card => matchesDifficulty(card.raw, selectedDifficulty, cardDifficultyMap))
+      .filter(card => matchSearchValue(card.raw, searchValue));
+
+      setCards(filteredCards);
+      setSelectedTag('');
+
+      if (cards.length > 0 && searchValue === '') {
+        const currentCardId = cards[index].id;
+        const nextCard = filteredCards.find(card => card.id === currentCardId);
+        const nextCardId = nextCard.id;
+        setIndex(nextCardId);
+      } else {
+        setIndex(0);
+      }
+
+  }, [originalCards, selectedDifficulty, cardDifficultyMap, searchValue]);
+
+  const matchesDifficulty = (key, selectedDifficulty, cardDifficultyMap) => {
+    if (selectedDifficulty === DIFFICULTY.DEFAULT) return true;
+    if (!cardDifficultyMap[key]) return false;
+    return cardDifficultyMap[key] >= selectedDifficulty;
+  };
+
+  const matchSearchValue = (text, searchValue) => {
+    if (!searchValue) return true;
+    const chars = searchValue.split('');
+    return chars.some(ch => text.includes(ch));
+  };
+
+
+  useEffect(() => {
+    setFlipped(false);
+  }, [index]);
+
+  const toggleFlipped = () => setFlipped((prev) => !prev);
+  const toggleShowRt = () => setShowRt((prev) => !prev);
+
+  const goNext = () => {
+    setIndex((prev) => (prev + 1) % cards.length);
+  };
+
+  const goPrev = () => {
+    setIndex((prev) => (prev - 1 + cards.length) % cards.length);
+  };
+
+  const handleTouchStart = (e) => {
+    const touchStart = e.touches[0].clientX;
+    setStartX(touchStart);
+  };
+
+  const handleTouchEnd = (e) => {
+    const touchEnd = e.changedTouches[0].clientX;
+    const distance = touchEnd - startX;
+
+    if (distance > 30) {
+      goPrev();
+    } else if (distance < -30) {
+      goNext();
+    }
+  };
+
+  // Keyboard listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowRight') {
+        goNext();
+      } else if (e.key === 'ArrowLeft') {
+        goPrev();
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        toggleFlipped();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [cards]);
+
+
+  const renderRubyJSX = (word) => {
     const elements = [];
     let buffer = '';
     let rtBuffer = '';
@@ -126,138 +194,80 @@ export default function FlashCard() {
   }
 
 
-  const toggleFlipped = () => setFlipped((prev) => !prev);
-  const toggleShowRt = () => setShowRt((prev) => !prev);
-
-  const goNext = () => {
-    setIndex((prev) => (prev + 1) % cards.length);
-    setFlipped(false);
-  };
-
-  const goPrev = () => {
-    setIndex((prev) => (prev - 1 + cards.length) % cards.length);
-    setFlipped(false);
-  };
-
-  const handleTouchStart = (e) => {
-    const touchStart = e.touches[0].clientX;
-    setStartX(touchStart);
-  };
-
-  const handleTouchEnd = (e) => {
-    const touchEnd = e.changedTouches[0].clientX;
-    const distance = touchEnd - startX;
-
-    if (distance > 30) {
-      goPrev();
-    } else if (distance < -30) {
-      goNext();
-    }
-  };
-
-  // Keyboard listener
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'ArrowRight') {
-        goNext();
-      } else if (e.key === 'ArrowLeft') {
-        goPrev();
-      } else if (e.key === 'Enter' || e.key === ' ') {
-        toggleFlipped();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [cards]);
-
-  const getTagOptions = () => {
-    return tags.map((tag, index) => (
-      <option key={tag.value} value={tag.value}>
-        {tag.text}
+  const renderTagOptions = () => {
+    return tags.map(tag => (
+      <option key={tag} value={tag}>
+        {tag}
       </option>
     ))
   };
 
-  const handleTagChange = (event) => {
-    const nextIndex = Number(event.target.value);
-    setTagIndex(nextIndex);
-    setIndex(nextIndex);
-    setSearchIndex(nextIndex);
-    setFlipped(false);
+  const handleSelectedTagChange = (event) => {
+    const selectedTag = event.target.value;
+    setSelectedTag(selectedTag);
+    if (selectedTag !== '') {
+      const firstMatchIndex = cards.findIndex(card => card.tag === selectedTag);
+      setIndex(firstMatchIndex == -1 ? 0 : firstMatchIndex);
+    }
   };
 
-  const handleMarkFilterChange = (event) => {
-    setMarkLevel(Number(event.target.value));
+  const handleSelectedDifficultyChange = (event) => {
+    setSelectedDifficulty(Number(event.target.value));
   };
 
-  const handleMarkDifficulty = (difficulty) => {
+  const handleCardDifficulty = (difficulty) => {
     if (cards.length === 0) return;
     const key = cards[index].raw;
-    setMarkList(updateMarkList(markList, key, difficulty));
+    setCardDifficultyMap(updateDifficultyMap(cardDifficultyMap, key, difficulty));
   };
 
-  const updateMarkList = (markList, key, difficulty) => {
-    if (markList[key] === difficulty) {
-      const { [key]: _, ...rest } = markList;
+  const updateDifficultyMap = (cardDifficultyMap, key, difficulty) => {
+    if (cardDifficultyMap[key] === difficulty) {
+      const { [key]: _, ...rest } = cardDifficultyMap;
       return rest;
     } else {
-      return { ...markList, [key]: difficulty };
+      return { ...cardDifficultyMap, [key]: difficulty };
     }
   };
 
   const getStickerColorCss = () => {
     const key = cards[index].raw;
-    if (markList[key] === DIFFICULTY.LV1) return 'yellow';
-    if (markList[key] === DIFFICULTY.LV2) return 'red';
+    if (cardDifficultyMap[key] === DIFFICULTY.LV1) return 'yellow';
+    if (cardDifficultyMap[key] === DIFFICULTY.LV2) return 'red';
     return ''
   };
 
   const handleSearchValueChange = (event) => {
-    const target = event.target.value.trim();
-    setSearchValue(target);
-
-    if (target !== '') {
-      const firstFound = cards.find(card => card.word.includes(target));
-      if (firstFound) {
-        setIndex(firstFound.index);
-        setSearchIndex(firstFound.index);
-      }
-    }
+    setSearchValue(event.target.value.trim());
   };
 
-  const getSearchOption = (cards, target = '') => {
-    return cards.filter(card => card.word.includes(target))
-      .map(card => (
-        <option key={card.index} value={card.index}>
+  const renderCardsOption = () => {
+    return cards.map((card, index) => (
+        <option key={index} value={index}>
           {card.raw}
         </option>
       ));
   };
 
-  const handleSearchOptionChange = (event) => {
-    const nextIndex = Number(event.target.value);
-
-    setIndex(nextIndex);
-    setSearchIndex(nextIndex);
-    setFlipped(false);
+  const handleSelectedCardsChange = (event) => {
+    setIndex(Number(event.target.value));
   };
 
 
   return (
     <div className='root-container'>
       <div className='card-manager'>
-        <select value={tagIndex} onChange={handleTagChange}>
-          {getTagOptions()}
+        <select value={selectedTag} onChange={handleSelectedTagChange}>
+          {renderTagOptions()}
         </select>
-        <select value={markLevel} onChange={handleMarkFilterChange}>
+        <select value={selectedDifficulty} onChange={handleSelectedDifficultyChange}>
           <option value={DIFFICULTY.DEFAULT}>-</option>
           <option value={DIFFICULTY.LV1}>☆</option>
           <option value={DIFFICULTY.LV2}>☆☆</option>
         </select>
         <button className={showRt ? 'selected' : ''} onClick={toggleShowRt}>あ</button>
-        <button className='yellow' onClick={() => handleMarkDifficulty(DIFFICULTY.LV1)}>☆</button>
-        <button className='red' onClick={() => handleMarkDifficulty(DIFFICULTY.LV2)}>☆☆</button>
+        <button className='yellow' onClick={() => handleCardDifficulty(DIFFICULTY.LV1)}>☆</button>
+        <button className='red' onClick={() => handleCardDifficulty(DIFFICULTY.LV2)}>☆☆</button>
       </div>
 
       <div className='card-manager'>
@@ -267,8 +277,8 @@ export default function FlashCard() {
           onChange={handleSearchValueChange}
           placeholder='Search'
         />
-        <select className='search-selector' value={searchIndex} onChange={handleSearchOptionChange}>
-          {getSearchOption(cards, searchValue)}
+        <select className='search-selector' value={index} onChange={handleSelectedCardsChange}>
+          {renderCardsOption(cards, searchValue)}
         </select>
       </div>
 
@@ -283,10 +293,10 @@ export default function FlashCard() {
           >
             <div className={`sticker ${getStickerColorCss()}`}></div>
             <div className='front'>
-              <div className={showRt ? '' : 'no-rt'}>{parseRubyJSX(cards[index].word)}</div>
+              <div className={showRt ? '' : 'no-rt'}>{renderRubyJSX(cards[index].word)}</div>
             </div>
             <div className='back'>
-              <div>{parseRubyJSX(cards[index].word)}</div>
+              <div>{renderRubyJSX(cards[index].word)}</div>
               <div className='exp'>{cards[index].exp}</div>
             </div>
           </div>
@@ -301,3 +311,4 @@ export default function FlashCard() {
     </div>
   );
 }
+
