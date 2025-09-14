@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage from '../../utils/useLocalStorage';
+import useOpenNewTab from '../../utils/useOpenNewTab';
 import './style.css';
 
 export default function FlashCard() {
@@ -15,6 +16,7 @@ export default function FlashCard() {
   const [startX, setStartX] = useState(0); // Use this to follow up touching
   const [flipped, setFlipped] = useState(false);
   const [showRt, setShowRt] = useState(false);
+  const openNewTab = useOpenNewTab();
 
   // Load dict
   useEffect(() => {
@@ -75,13 +77,16 @@ export default function FlashCard() {
       setCards(filteredCards);
       setSelectedTag('');
 
-      if (cards.length > 0 && searchValue === '') {
-        const currentCardId = cards[index].id;
-        const nextCard = filteredCards.find(card => card.id === currentCardId);
-        const nextCardId = nextCard.id;
-        setIndex(nextCardId);
-      } else {
+      if (cards.length === 0 || searchValue !== '') {
+        return setIndex(0);
+      }
+
+      const currentCardId = cards[index].id;
+      const nextCardIndex = filteredCards.findIndex(card => card.id === currentCardId);
+      if (nextCardIndex === -1 ) {
         setIndex(0);
+      } else {
+        setIndex(nextCardIndex);
       }
 
   }, [originalCards, selectedDifficulty, cardDifficultyMap, searchValue]);
@@ -119,7 +124,7 @@ export default function FlashCard() {
   }
 
   const handleOpenDict = () => {
-    window.open("/#/raw", "_blank");
+    openNewTab('/nihongo-card/#/raw');
   };
 
   const handleTouchStart = (e) => {

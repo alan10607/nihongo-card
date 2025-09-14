@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 
-function usePrevious(value) {
-  const ref = useRef();
+const usePrevious = (value, initialValue = undefined) => {
+  const ref = useRef(initialValue);
 
   useEffect(() => {
     ref.current = value;
@@ -9,3 +9,5 @@ function usePrevious(value) {
 
   return ref.current;
 }
+
+export default usePrevious;
