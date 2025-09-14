@@ -48,11 +48,18 @@ export default function FlashCard() {
       acc.tags.push(nextTag);
     } else {
       const [word, exp = ''] = line.split(':');
+      const kanas = (word.match(/\((.*?)\)/g) || [])
+        .map(k => k.replace(/[()]/g, ''));
+      const tango = word.replace(/\(.*?\)/g, '')
+        .replace(/[<>]/g, '');
+
       acc.cards.push({
         id,
         tag,
         word,
         exp,
+        tango,
+        kanas,
         raw: line
       });
     }
@@ -63,7 +70,7 @@ export default function FlashCard() {
   useEffect(() => {
     const filteredCards = originalCards
       .filter(card => matchesDifficulty(card.raw, selectedDifficulty, cardDifficultyMap))
-      .filter(card => matchSearchValue(card.raw, searchValue));
+      .filter(card => matchSearchValue(card, searchValue));
 
       setCards(filteredCards);
       setSelectedTag('');
@@ -85,10 +92,9 @@ export default function FlashCard() {
     return cardDifficultyMap[key] >= selectedDifficulty;
   };
 
-  const matchSearchValue = (text, searchValue) => {
+  const matchSearchValue = (card, searchValue) => {
     if (!searchValue) return true;
-    const chars = searchValue.split('');
-    return chars.some(ch => text.includes(ch));
+    return card.tango.includes(searchValue) || card.kanas.some(kana => kana.includes(searchValue));
   };
 
 
@@ -105,6 +111,27 @@ export default function FlashCard() {
 
   const goPrev = () => {
     setIndex((prev) => (prev - 1 + cards.length) % cards.length);
+  };
+
+  const copyCard = async () => {
+    const copyValue = (flipped || showRt) ? cards[index].word : cards[index].tango
+    await navigator.clipboard.writeText(copyValue);
+  }
+
+  const handleOpenDict = () => {
+    fetch('lib/dict.txt')
+      .then(res => res.text())
+      .then(text => {
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.click();
+        
+        URL.revokeObjectURL(url); // revoke after click
+      });
   };
 
   const handleTouchStart = (e) => {
@@ -260,12 +287,12 @@ export default function FlashCard() {
         <select value={selectedTag} onChange={handleSelectedTagChange}>
           {renderTagOptions()}
         </select>
+        <button className={showRt ? 'selected' : ''} onClick={toggleShowRt}>あ</button>
         <select value={selectedDifficulty} onChange={handleSelectedDifficultyChange}>
           <option value={DIFFICULTY.DEFAULT}>-</option>
           <option value={DIFFICULTY.LV1}>☆</option>
           <option value={DIFFICULTY.LV2}>☆☆</option>
         </select>
-        <button className={showRt ? 'selected' : ''} onClick={toggleShowRt}>あ</button>
         <button className='yellow' onClick={() => handleCardDifficulty(DIFFICULTY.LV1)}>☆</button>
         <button className='red' onClick={() => handleCardDifficulty(DIFFICULTY.LV2)}>☆☆</button>
       </div>
@@ -280,6 +307,8 @@ export default function FlashCard() {
         <select className='search-selector' value={index} onChange={handleSelectedCardsChange}>
           {renderCardsOption(cards, searchValue)}
         </select>
+        <button onClick={copyCard}>📋</button>
+        <button onClick={handleOpenDict}>📖</button>
       </div>
 
       {cards.length > 0 && (
