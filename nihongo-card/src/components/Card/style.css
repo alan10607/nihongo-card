@@ -1,0 +1,188 @@
+.root-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    height: 100vh;
+    padding: 15px;
+  }
+  
+  .root-container>div {
+    flex-grow: 0;
+  }
+  
+  ruby+ruby {
+    margin-left: 5px;
+  }
+  
+  ruby rt {
+    font-family: 'Brush Script MT', 'KaiTi', 'SimKai', 'Yu Mincho', serif;
+  }
+  
+  .card-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+    gap: 5px;
+  }
+  
+  .card-container>button {
+    border: 0;
+    font-weight: bold;
+    background: #ffffff00;
+    width: 40px;
+    text-align: center;
+    font-size: 1.5em;
+    height: 100%;
+  }
+  
+  .flashcard {
+    width: 80vw;
+    height: 60vw;
+    max-height: 320px;
+    position: relative;
+    perspective: 1000px;
+    /* Set the visual perspective */
+    transform-style: preserve-3d;
+    /* Ensure child elements are in 3D space */
+    transition: transform 0.2s;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .flashcard.flipped {
+    transform: rotateX(180deg);
+    /* When card flipped, rotate 180 deg */
+  }
+  
+  .front,
+  .back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    font-size: 2.2em;
+    backface-visibility: hidden;
+    color: black;
+    align-content: center;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .front {
+    font-weight: bold;
+  }
+  
+  .back {
+    font-weight: bold;
+    transform: rotateX(180deg);
+    /* The back needs to be flipped 180 degrees first */
+  }
+  
+  .front>div,
+  .back>div {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    align-content: flex-end;
+  }
+  
+  .back .exp {
+    font-size: 0.8em;
+  }
+  
+  .flashcard .sticker {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 0;
+    height: 0;
+    border-top: 50px solid transparent;
+    border-right: 50px solid transparent;
+    z-index: 1;
+  }
+  
+  .flashcard .sticker.yellow {
+    border-top-color: #FFA500;
+  }
+  
+  .flashcard .sticker.red {
+    border-top-color: #FF4500;
+  }
+  
+  .card-container .no-rt rt {
+    display: none;
+  }
+  
+  .card-manager {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 5px;
+  }
+  
+  .card-manager>div,
+  .card-manager>select,
+  .card-manager>button,
+  .card-manager>input[type="text"] {
+    flex-grow: 0;
+    min-width: 0;
+  }
+  
+  .expand {
+    flex-grow: 1;
+  }
+  
+  .card-manager button {
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .card-manager button.selected {
+    background-color: #919191;
+  }
+  
+  .card-manager button.yellow {
+    background: linear-gradient(135deg, #FFA500, #FF8C00);
+  }
+  
+  .card-manager button.red {
+    background: linear-gradient(135deg, #FF4500, #FF6347);
+  }
+  
+  .card-manager button:hover {
+    box-shadow: 0 6px 10px rgba(0, 0s, 0, 0.3);
+  }
+  
+  .card-manager button:active {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-manager .search-selector {
+    width: 100%;
+  }
+  
+  .card-foot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    font-size: 14px;
+    font-weight: 300;
+    color: #666;
+    transition: transform 0.2s;
+    opacity: 0;
+  }
+  
+  .card-foot:hover {
+    opacity: 1;
+  }

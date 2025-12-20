@@ -1,0 +1,108 @@
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  height: 100vh;
+  padding: 15px;
+  background-color: #000;
+  color: #fff;
+}
+
+.chart-container h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #fff;
+}
+
+.chart-manager {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.chart-manager select {
+  font-size: 18px;
+  padding: 5px 10px;
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #666;
+  border-radius: 4px;
+}
+
+.chart-manager button {
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 5px 10px;
+  border: 1px solid #666;
+  border-radius: 4px;
+  background-color: #333;
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.chart-manager button.selected {
+  background-color: #555;
+}
+
+.chart-manager button:hover {
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+}
+
+.chart-manager button:active {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.chart-scroll {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid #666;
+  border-radius: 4px;
+  padding: 10px;
+  background-color: #000;
+  color: #fff;
+}
+
+.chart-spacer {
+  height: 30px;
+}
+
+.chart-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 8px 0;
+  border-bottom: 1px solid #333;
+  background-color: #000;
+  color: #fff;
+}
+
+.chart-item:last-child {
+  border-bottom: none;
+}
+
+.chart-word {
+  font-size: 18px;
+  min-width: 200px;
+  background-color: #000;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.chart-word.no-rt rt {
+  display: none;
+}
+
+.chart-word rt {
+  font-size: 0.7em;
+}
+
+.chart-exp {
+  font-size: 16px;
+  color: #ccc;
+  flex: 1;
+  background-color: #000;
+  padding: 4px 8px;
+  border-radius: 4px;
+}

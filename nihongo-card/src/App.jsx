@@ -1,11 +1,13 @@
 import { useRoutes, Navigate } from 'react-router-dom'
-import Root from './components/Root'
+import Card from './components/Card'
 import Raw from './components/Raw'
 import Tool from './components/Tool'
 import Note from './components/Note'
+import Chart from './components/Chart'
 
 const routeConfig = [
-  { path: '/', element: <Root /> },
+  { path: '/', element: <Chart /> },
+  { path: '/card', element: <Card /> },
   { path: '/raw', element: <Raw /> },
   { path: '/tool', element: <Tool /> },
   { path: '/note', element: <Note /> },
