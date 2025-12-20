@@ -82,7 +82,7 @@
 }
 
 .chart-word {
-  font-size: 18px;
+  font-size: 22px;
   min-width: 200px;
   background-color: #000;
   color: #fff;
@@ -99,7 +99,7 @@
 }
 
 .chart-exp {
-  font-size: 16px;
+  font-size: 20px;
   color: #ccc;
   flex: 1;
   background-color: #000;
