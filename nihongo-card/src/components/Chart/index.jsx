@@ -51,6 +51,9 @@ export default function Chart() {
 
     setWords(parsedWords);
     setTags(parsedTags);
+    if (parsedTags.length > 0) {
+      setSelectedTag(parsedTags[parsedTags.length - 1]);
+    }
   };
 
   const handleSelectedTagChange = (event) => {

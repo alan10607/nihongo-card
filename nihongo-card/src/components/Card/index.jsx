@@ -9,7 +9,7 @@ export default function FlashCard() {
   const [cards, setCards] = useState([]);
   const [index, setIndex] = useState(0);
   const [tags, setTags] = useState([]);
-  const [selectedTag, setSelectedTag] = useState(0);
+  const [selectedTag, setSelectedTag] = useState('');
   const [cardDifficultyMap, setCardDifficultyMap] = useLocalStorage('markDict', {});
   const [selectedDifficulty, setSelectedDifficulty] = useState(DIFFICULTY.DEFAULT);
   const [searchValue, setSearchValue] = useState('');
