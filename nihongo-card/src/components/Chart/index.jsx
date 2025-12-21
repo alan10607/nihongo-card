@@ -141,7 +141,6 @@ export default function Chart() {
 
   return (
     <div className='chart-container'>
-      <h2>單字列表</h2>
       <div className='chart-manager'>
         <select value={selectedTag} onChange={handleSelectedTagChange}>
           {renderTagOptions()}
