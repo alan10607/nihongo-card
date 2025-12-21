@@ -8,6 +8,7 @@ export default function Chart() {
   const [filteredWords, setFilteredWords] = useState([]);
   const [showRt, setShowRt] = useState(true);
   const [showExp, setShowExp] = useState(true);
+  const [selectedIndex, setSelectedIndex] = useState(null);
 
   // Load dict
   useEffect(() => {
@@ -54,6 +55,7 @@ export default function Chart() {
     if (parsedTags.length > 0) {
       setSelectedTag(parsedTags[parsedTags.length - 1]);
     }
+    setSelectedIndex(null);
   };
 
   const handleSelectedTagChange = (event) => {
@@ -62,6 +64,14 @@ export default function Chart() {
 
   const toggleShowRt = () => setShowRt((prev) => !prev);
   const toggleShowExp = () => setShowExp((prev) => !prev);
+
+  const handleItemClick = (index) => {
+    if (selectedIndex === index) {
+      setSelectedIndex(null);
+    } else {
+      setSelectedIndex(index);
+    }
+  };
 
   const renderRubyJSX = (word) => {
     const elements = [];
@@ -140,18 +150,25 @@ export default function Chart() {
         <button className={showExp ? 'selected' : ''} onClick={toggleShowExp}>註釋</button>
       </div>
       <div className='chart-scroll'>
-        {filteredWords.map((item, index) => (
-          <div key={index} className='chart-item'>
-            <div className={`chart-word ${showRt ? '' : 'no-rt'}`}>
-              {renderRubyJSX(item.word)}
-            </div>
-            {showExp && item.exp && (
-              <div className='chart-exp'>
-                {item.exp}
+        {filteredWords.map((item, index) => {
+          const isSelected = selectedIndex === index;
+          return (
+            <div 
+              key={index} 
+              className={`chart-item ${(isSelected) ? 'selected' : ''}`}
+              onClick={() => handleItemClick(index)}
+            >
+              <div className={`chart-word ${(isSelected || showRt) ? '' : 'no-rt'}`}>
+                {renderRubyJSX(item.word)}
               </div>
-            )}
-          </div>
-        ))}
+              {(isSelected || showExp) && item.exp && (
+                <div className='chart-exp'>
+                  {item.exp}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
       <div className='chart-spacer'></div>
     </div>
