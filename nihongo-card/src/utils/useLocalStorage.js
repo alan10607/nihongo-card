@@ -7,8 +7,13 @@ const useLocalStorage = (key, initialValue) => {
   const [value, setValue] = useState(parsedValue);
 
   const setStoredValue = (newValue) => {
-    setValue(newValue);
-    localStorage.setItem(key, JSON.stringify(newValue));
+    const valueToStore =
+      typeof newValue === "function"
+        ? newValue(value)
+        : newValue;
+
+    setValue(valueToStore);
+    localStorage.setItem(key, JSON.stringify(valueToStore));
   };
 
   return [value, setStoredValue];
