@@ -7,12 +7,11 @@ export default function Chart() {
   const [tags, setTags] = useState([]);
   const [selectedTag, setSelectedTag] = useState('');
   const [filteredWords, setFilteredWords] = useState([]);
-  const [showRt, setShowRt] = useState(true);
   const [showExp, setShowExp] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [hiddenMap, setHiddenMap] = useLocalStorage('chartHidden', {});
-  const startXRef = useRef(null);
-  const [dragState, setDragState] = useState({key: null, x: 0, swiping: false});
+  const [isMemorizeMode, setIsMemorizeMode] = useState(false);
+  const [pendingHideWords, setPendingHideWords] = useState([]);
 
   // Load dict
   useEffect(() => {
@@ -66,8 +65,16 @@ export default function Chart() {
     setSelectedTag(event.target.value);
   };
 
-  const toggleShowRt = () => setShowRt((prev) => !prev);
   const toggleShowExp = () => setShowExp((prev) => !prev);
+  const togglesMemorizeMode = () => {
+    setIsMemorizeMode(prev => {
+      const next = !prev;
+      setShowExp(!next);
+      setSelectedIndex(null);
+      return next;
+    });
+  }
+  
 
   const shiftTag = (step) => {
     if (tags.length === 0) return;
@@ -111,97 +118,15 @@ export default function Chart() {
     }
   };
 
-  const handleDragStart = (e, key) => {
-    startXRef.current = e.clientX ?? e.touches[0].clientX;
-    setDragState({ key: key, x: 0, swiping: true });
+  const handlePassBtn = (e, key, item) => {
+    e.stopPropagation();
+    setPendingHideWords(prev => [...prev, key]);
 
+    setTimeout(() => {
+      hideWord(item);
+      setPendingHideWords(prev => prev.filter(k => k !== key));
+    }, 300); // same as CSS transition time
   };
-
-  const handleDragMove = (e, key) => {
-    if (startXRef.current === null) return;
-    const clientX = e.clientX ?? e.touches[0].clientX;
-    const deltaX = clientX - startXRef.current;
-    if (deltaX > 10) {
-      setDragState({ key: key, x: deltaX, swiping: true });
-
-      if (e.currentTarget) {
-        if (deltaX > 20) e.currentTarget.classList.add('swiping');
-        else e.currentTarget.classList.remove('swiping');
-      }
-    }
-  };
-
-  const handleDragEnd = (e, key, item) => {
-    if (startXRef.current === null) return;
-    if (e.currentTarget) {
-      e.currentTarget.classList.remove('swiping');
-    }
-    startXRef.current = null;
-    
-    const deltaX = dragState?.x || 0;
-    if (deltaX > 120) {
-      setDragState({ key: key, x: 1000, swiping: false });
-
-      setTimeout(() => {
-        hideWord(item);
-        setDragState({ key: null, x: 0, swiping: false });
-      }, 300); // same as CSS transition time
-    } else {
-      setDragState({ key: key, x: 0, swiping: false });
-
-    }
-  };
-
-  const handleMouseDown = (e, key, item) => {
-    startXRef.current = e.clientX;
-    setDragState({ key: key, x: 0, swiping: true });
-
-  
-    // MouseMove
-    const handleMouseMove = (ev) => {
-      if (startXRef.current === null) return;
-      const deltaX = ev.clientX - startXRef.current;
-      setDragState({ key: key, x: deltaX, swiping: true });
-
-  
-      const el = document.querySelector(`[data-key="${key}"]`);
-      if (el) {
-        if (deltaX > 20) el.classList.add('swiping');
-        else el.classList.remove('swiping');
-      }
-    };
-  
-    // MouseUp
-    const handleMouseUp = (ev) => {
-      const deltaX = ev.clientX - startXRef.current;
-      startXRef.current = null;
-
-      const el = document.querySelector(`[data-key="${key}"]`);
-      if (el) el.classList.remove('swiping');
-
-      if (deltaX > 120) {
-        setDragState({ key: key, x: 1000, swiping: false });
-
-        setTimeout(() => {
-          hideWord(item);
-          setDragState({ key: null, x: 0, swiping: false });
-        }, 300); // same as CSS transition time
-      } else {
-        setDragState({ key: key, x: 0, swiping: false });
-
-      }
-
-      startXRef.current = null;
-
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  };  
-  
-  
 
   const renderRubyJSX = (word) => {
     const elements = [];
@@ -278,15 +203,19 @@ export default function Chart() {
         <button onClick={handlePrevTag}>◀</button>
         <button onClick={handleNextTag}>▶</button>
         <div className='expand'></div>
-        <button className={showRt ? 'selected' : ''} onClick={toggleShowRt}>あ</button>
         <button className={showExp ? 'selected' : ''} onClick={toggleShowExp}>註釋</button>
-        <button onClick={restoreHidden}>
+        <button className={isMemorizeMode ? 'selected' : ''} onClick={togglesMemorizeMode}>考試</button>
+        <button 
+          className={hiddenMap[selectedTag]?.length > 0 ? 'selected' : ''}
+          style={isMemorizeMode ? {} : { display: 'none' }}
+          onClick={restoreHidden}>
           復原 {hiddenMap[selectedTag]?.length > 0 ? hiddenMap[selectedTag].length : ''}
         </button>
       </div>
       <div className='chart-scroll'>
         {filteredWords
         .filter(item => {
+          if (!isMemorizeMode) return true;
           const hiddenList = hiddenMap[selectedTag] || [];
           return !hiddenList.includes(item.word);
         })
@@ -297,25 +226,30 @@ export default function Chart() {
             <div 
               key={key}
               data-key={key} 
-              className={`chart-item ${(isSelected) ? 'selected' : ''}`}
-              style={{
-                transform: dragState?.key === key ? `translateX(${dragState?.x || 0}px)` : '',
-                transition: dragState?.key === key ? 'none' : 'transform 0.3s ease, opacity 0.3s ease',
-              }}
+              className={`chart-item 
+                ${isSelected ? 'selected' : ''} 
+                ${pendingHideWords.includes(key) ? 'swipe-hide' : ''}`
+              }
               onClick={() => handleItemClick(key)}
-              onTouchStart={(e) => handleDragStart(e, key)}
-              onTouchMove={(e) => handleDragMove(e, key)}
-              onTouchEnd={(e) => handleDragEnd(e, key, item)}
-              onMouseDown={(e) => handleMouseDown(e, key, item)}
-              >
-              <div className={`chart-word ${(isSelected || showRt) ? '' : 'no-rt'}`}>
-                {renderRubyJSX(item.word)}
-              </div>
-              {(isSelected || showExp) && item.exp && (
-                <div className='chart-exp'>
-                  {item.exp}
+            >
+              <div className="chart-item-content">
+                <div className={`chart-word ${(isSelected || showExp) ? '' : 'no-rt'}`}>
+                  {renderRubyJSX(item.word)}
                 </div>
-              )}
+                {(isSelected || showExp) && item.exp && (
+                  <div className='chart-exp'>
+                    {item.exp}
+                  </div>
+                )}
+                {isMemorizeMode && (
+                  <button
+                    className='chart-pass-btn'
+                    onClick={(e) => handlePassBtn(e, key, item)}
+                  >
+                    ✔
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
